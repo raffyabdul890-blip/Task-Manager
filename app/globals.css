@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Consistent focus outline for accessibility */
+  :focus-visible {
+    outline: 2px solid theme('colors.violet.500');
+    outline-offset: 2px;
+  }
+
+  /* Date inputs — match the app's color scheme in dark mode */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    @apply dark:invert dark:opacity-60;
+  }
+}
+
+@layer utilities {
+  /* line-clamp for older browsers (Tailwind v3.3+ has this built-in) */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
