@@ -1,24 +1,28 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'TaskFlow — Task Manager',
-  description:
-    'A beautiful, feature-rich task manager built with Next.js 14, TypeScript, and Tailwind CSS.',
-  keywords: ['task manager', 'todo', 'productivity', 'next.js'],
+  title: 'FlowTask — Task Manager',
+  description: 'Multi-user task manager with reminders, built with Next.js and Supabase.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'FlowTask',
+  },
 };
 
-/**
- * Inline script that applies the saved theme BEFORE the first paint, preventing
- * any flash of the wrong color scheme. Runs synchronously in the <head>.
- */
+export const viewport: Viewport = {
+  themeColor: '#7c3aed',
+};
+
 const themeScript = `
 (function(){
   try{
-    var t=localStorage.getItem('taskflow-theme');
+    var t=localStorage.getItem('flowtask-theme');
     if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
       document.documentElement.classList.add('dark');
     }
@@ -26,12 +30,21 @@ const themeScript = `
 })();
 `;
 
+const swScript = `
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  });
+}
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: swScript }} />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body
         className={`${inter.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950 min-h-screen transition-colors duration-200`}

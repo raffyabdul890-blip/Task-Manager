@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 interface Stats {
   total: number;
   completed: number;
@@ -9,12 +11,22 @@ interface Stats {
 interface HeaderProps {
   stats: Stats;
   darkMode: boolean;
+  userEmail: string | undefined;
   onToggleDark: () => void;
   onAddTask: () => void;
+  onSignOut: () => void;
 }
 
-export default function Header({ stats, darkMode, onToggleDark, onAddTask }: HeaderProps) {
-  const progress = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+export default function Header({
+  stats,
+  darkMode,
+  userEmail,
+  onToggleDark,
+  onAddTask,
+  onSignOut,
+}: HeaderProps) {
+  const progress =
+    stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
 
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/70 dark:border-slate-700/70">
@@ -23,16 +35,19 @@ export default function Header({ stats, darkMode, onToggleDark, onAddTask }: Hea
 
           {/* Logo + title */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-md flex-shrink-0">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-            </div>
+            <Image
+              src="/flowtask-logo.png"
+              alt="FlowTask"
+              width={36}
+              height={36}
+              className="rounded-xl shadow-md flex-shrink-0"
+              priority
+            />
             <div className="min-w-0">
               <h1 className="text-xl font-bold text-slate-900 dark:text-white leading-none tracking-tight">
-                TaskFlow
+                FlowTask
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[160px]">
                 {stats.total === 0
                   ? 'No tasks yet'
                   : `${stats.completed} of ${stats.total} completed`}
@@ -40,7 +55,7 @@ export default function Header({ stats, darkMode, onToggleDark, onAddTask }: Hea
             </div>
           </div>
 
-          {/* Progress bar — hidden on small screens */}
+          {/* Progress bar */}
           {stats.total > 0 && (
             <div className="hidden sm:flex items-center gap-3 flex-1 max-w-xs">
               <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -56,8 +71,8 @@ export default function Header({ stats, darkMode, onToggleDark, onAddTask }: Hea
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Dark mode toggle */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Dark mode */}
             <button
               onClick={onToggleDark}
               className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
@@ -74,6 +89,24 @@ export default function Header({ stats, darkMode, onToggleDark, onAddTask }: Hea
               )}
             </button>
 
+            {/* User menu */}
+            {userEmail && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg">
+                <span className="text-xs text-slate-500 dark:text-slate-400 max-w-[120px] truncate">
+                  {userEmail}
+                </span>
+                <button
+                  onClick={onSignOut}
+                  className="text-xs text-slate-500 hover:text-rose-500 dark:text-slate-400 dark:hover:text-rose-400 transition-colors"
+                  title="Sign out"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
             {/* Add task */}
             <button
               onClick={onAddTask}
@@ -86,7 +119,6 @@ export default function Header({ stats, darkMode, onToggleDark, onAddTask }: Hea
               <span className="sm:hidden">Add</span>
             </button>
           </div>
-
         </div>
       </div>
     </header>

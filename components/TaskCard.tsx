@@ -1,8 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Task } from '@/lib/types';
-import { PRIORITY_CONFIG, isOverdue, isDueToday, formatDate } from '@/lib/utils';
+import {
+  PRIORITY_CONFIG,
+  getDueInText,
+  formatDate,
+  formatTime,
+} from '@/lib/utils';
 
 interface TaskCardProps {
   task: Task;
@@ -13,18 +18,29 @@ interface TaskCardProps {
 
 export default function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardProps) {
   const [pendingDelete, setPendingDelete] = useState(false);
+  const [dueText, setDueText] = useState('');
 
   const pc = PRIORITY_CONFIG[task.priority];
-  const overdue = isOverdue(task.dueDate, task.completed);
-  const dueToday = isDueToday(task.dueDate, task.completed);
 
-  const handleDeleteClick = () => {
-    if (pendingDelete) {
-      onDelete(task.id);
-    } else {
-      setPendingDelete(true);
-    }
+  // Live "due in X / overdue" counter, refreshed every minute
+  useEffect(() => {
+    if (!task.dueDate) return;
+    const update = () =>
+      setDueText(getDueInText(task.dueDate!, task.dueTime, task.completed));
+    update();
+    const id = setInterval(update, 60_000);
+    return () => clearInterval(id);
+  }, [task.dueDate, task.dueTime, task.completed]);
+
+  const handleDelete = () => {
+    if (pendingDelete) onDelete(task.id);
+    else setPendingDelete(true);
   };
+
+  const isOverdueNow =
+    dueText.startsWith('Overdue') && !task.completed;
+  const isDueSoonNow =
+    dueText.startsWith('Due in') && !task.completed;
 
   return (
     <div
@@ -79,9 +95,8 @@ export default function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardP
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
-
                 <button
-                  onClick={handleDeleteClick}
+                  onClick={handleDelete}
                   title={pendingDelete ? 'Click again to confirm' : 'Delete task'}
                   className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${
                     pendingDelete
@@ -130,13 +145,13 @@ export default function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardP
                 {task.category}
               </span>
 
-              {/* Due date */}
+              {/* Due date + time */}
               {task.dueDate && (
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                    overdue
+                    isOverdueNow
                       ? 'bg-rose-50 text-rose-600 ring-1 ring-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-800'
-                      : dueToday
+                      : isDueSoonNow && dueText.includes('Due in') && !dueText.includes('d')
                       ? 'bg-amber-50 text-amber-600 ring-1 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:ring-amber-800'
                       : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
                   }`}
@@ -144,9 +159,34 @@ export default function TaskCard({ task, onToggle, onEdit, onDelete }: TaskCardP
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  {overdue && 'Overdue · '}
-                  {dueToday && 'Today · '}
                   {formatDate(task.dueDate)}
+                  {task.dueTime && ` · ${formatTime(task.dueTime)}`}
+                </span>
+              )}
+
+              {/* Live "due in X" counter */}
+              {dueText && (
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    isOverdueNow
+                      ? 'text-rose-600 dark:text-rose-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                  }`}
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {dueText}
+                </span>
+              )}
+
+              {/* Reminder indicator */}
+              {task.reminderMinutes !== null && !task.reminderSent && !task.completed && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-violet-50 text-violet-600 ring-1 ring-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:ring-violet-800">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  Reminder set
                 </span>
               )}
             </div>

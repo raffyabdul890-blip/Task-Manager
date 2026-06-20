@@ -1,26 +1,7 @@
-import { Task } from './types';
+// Theme preference is the only thing we still keep in localStorage.
+// All task data now lives in Supabase.
 
-const TASKS_KEY = 'taskflow-tasks';
-const THEME_KEY = 'taskflow-theme';
-
-export function loadTasks(): Task[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(TASKS_KEY);
-    return raw ? (JSON.parse(raw) as Task[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveTasks(tasks: Task[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
-  } catch {
-    // Quota exceeded — silently fail
-  }
-}
+const THEME_KEY = 'flowtask-theme';
 
 export function loadTheme(): 'dark' | 'light' | null {
   if (typeof window === 'undefined') return null;

@@ -1,6 +1,6 @@
 'use client';
 
-import { TaskFilters, Priority, FilterStatus } from '@/lib/types';
+import { TaskFilters, Priority, FilterStatus, SortBy } from '@/lib/types';
 
 interface FilterBarProps {
   filters: TaskFilters;
@@ -29,13 +29,12 @@ export default function FilterBar({
 }: FilterBarProps) {
   const patch = (update: Partial<TaskFilters>) => setFilters({ ...filters, ...update });
 
-  const selectClass =
+  const sel =
     'px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-400 transition-colors cursor-pointer';
 
   return (
     <div className="space-y-3">
-
-      {/* Search input */}
+      {/* Search */}
       <div className="relative">
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
           <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -52,7 +51,7 @@ export default function FilterBar({
         {filters.search && (
           <button
             onClick={() => patch({ search: '' })}
-            className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             aria-label="Clear search"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -62,7 +61,7 @@ export default function FilterBar({
         )}
       </div>
 
-      {/* Filter controls row */}
+      {/* Filter row */}
       <div className="flex flex-wrap items-center gap-2">
 
         {/* Status tabs */}
@@ -82,11 +81,11 @@ export default function FilterBar({
           ))}
         </div>
 
-        {/* Priority filter */}
+        {/* Priority */}
         <select
           value={filters.priority}
           onChange={(e) => patch({ priority: e.target.value as Priority | 'all' })}
-          className={selectClass}
+          className={sel}
         >
           <option value="all">All priorities</option>
           <option value="high">High</option>
@@ -94,21 +93,30 @@ export default function FilterBar({
           <option value="low">Low</option>
         </select>
 
-        {/* Category filter */}
+        {/* Category */}
         {usedCategories.length > 0 && (
           <select
             value={filters.category}
             onChange={(e) => patch({ category: e.target.value })}
-            className={selectClass}
+            className={sel}
           >
             <option value="all">All categories</option>
             {usedCategories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
+              <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
         )}
+
+        {/* Sort */}
+        <select
+          value={filters.sortBy}
+          onChange={(e) => patch({ sortBy: e.target.value as SortBy })}
+          className={sel}
+        >
+          <option value="created">Newest first</option>
+          <option value="due">Due date</option>
+          <option value="priority">Priority</option>
+        </select>
 
         {/* Clear filters */}
         {hasActiveFilters && (
@@ -120,11 +128,9 @@ export default function FilterBar({
           </button>
         )}
 
-        {/* Result count */}
+        {/* Count */}
         <span className="ml-auto text-sm text-slate-500 dark:text-slate-400 tabular-nums">
-          {hasActiveFilters
-            ? `${filteredCount} of ${totalCount}`
-            : `${totalCount}`}{' '}
+          {hasActiveFilters ? `${filteredCount} of ${totalCount}` : `${totalCount}`}{' '}
           task{totalCount !== 1 ? 's' : ''}
         </span>
       </div>
