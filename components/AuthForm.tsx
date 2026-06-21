@@ -67,7 +67,7 @@ export default function AuthForm() {
       {/* Logo */}
       <div className="flex flex-col items-center mb-8">
         <Image
-          src="/flowtask-logo.png"
+          src="/flowtask-mark.png"
           alt="FlowTask"
           width={72}
           height={72}

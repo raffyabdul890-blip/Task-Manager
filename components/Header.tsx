@@ -36,7 +36,7 @@ export default function Header({
           {/* Logo + title */}
           <div className="flex items-center gap-3 min-w-0">
             <Image
-              src="/flowtask-logo.png"
+              src="/flowtask-mark.png"
               alt="FlowTask"
               width={36}
               height={36}
