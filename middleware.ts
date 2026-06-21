@@ -46,6 +46,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.json|icons).*)',
+    // Run on all routes EXCEPT Next.js internals and any static file
+    // (anything containing a "." — e.g. icon.png, flowtask-mark.png, manifest.json, sw.js).
+    // Pages never contain a dot, so auth protection still applies to them.
+    '/((?!_next/static|_next/image|.*\\..*).*)',
   ],
 };
