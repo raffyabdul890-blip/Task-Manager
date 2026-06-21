@@ -8,11 +8,18 @@ import { createServerSupabaseClient } from '@/lib/supabase-server';
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
+  // Where to land after a successful confirmation (defaults to the app home).
+  const next = searchParams.get('next') ?? '/';
 
   if (code) {
     const supabase = createServerSupabaseClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      // Session cookie is set → open the user straight into the app.
+      return NextResponse.redirect(new URL(next, origin));
+    }
   }
 
-  return NextResponse.redirect(new URL('/', origin));
+  // No code, or the exchange failed/expired → send back to login with a hint.
+  return NextResponse.redirect(new URL('/auth?confirmed=error', origin));
 }
