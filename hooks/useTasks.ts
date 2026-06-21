@@ -92,7 +92,7 @@ export function useTasks() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('[addTask] not authenticated — task not saved');
-        return;
+        throw new Error('You are not signed in. Please log in again and retry.');
       }
 
       const { data: row, error } = await supabase
@@ -115,7 +115,7 @@ export function useTasks() {
 
       if (error) {
         console.error('[addTask] insert error:', error);
-        return;
+        throw new Error(error.message || 'Could not save the task to the database.');
       }
       if (row) setTasks((prev) => [fromDb(row as DbTask), ...prev]);
     },
@@ -146,7 +146,7 @@ export function useTasks() {
 
       if (error) {
         console.error('[updateTask] error:', error);
-        return;
+        throw new Error(error.message || 'Could not update the task.');
       }
       if (row) setTasks((prev) => prev.map((t) => (t.id === id ? fromDb(row as DbTask) : t)));
     },

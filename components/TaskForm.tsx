@@ -8,7 +8,7 @@ import { TaskFormData } from '@/hooks/useTasks';
 interface TaskFormProps {
   /** null → add mode, Task → edit mode */
   task: Task | null;
-  onSave: (data: TaskFormData) => void;
+  onSave: (data: TaskFormData) => Promise<void> | void;
   onClose: () => void;
   /** Called after save when the task has a reminder and push isn't set up yet */
   onNeedsNotification?: () => void;
@@ -39,6 +39,8 @@ const today = new Date().toISOString().split('T')[0];
 export default function TaskForm({ task, onSave, onClose, onNeedsNotification }: TaskFormProps) {
   const [form, setForm] = useState<FormState>(DEFAULT);
   const [titleError, setTitleError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -67,8 +69,9 @@ export default function TaskForm({ task, onSave, onClose, onNeedsNotification }:
     return () => document.removeEventListener('keydown', fn);
   }, [onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError('');
     if (!form.title.trim()) { setTitleError('Title is required.'); return; }
 
     // Compute remindAt only when we have a due date + a reminder setting
@@ -77,16 +80,26 @@ export default function TaskForm({ task, onSave, onClose, onNeedsNotification }:
       remindAt = computeRemindAt(form.dueDate, form.dueTime || null, form.reminderMinutes);
     }
 
-    onSave({
-      title: form.title.trim(),
-      description: form.description.trim(),
-      priority: form.priority,
-      dueDate: form.dueDate || null,
-      dueTime: form.dueTime || null,
-      category: form.category,
-      reminderMinutes: form.dueDate ? form.reminderMinutes : null,
-      remindAt,
-    });
+    setSaving(true);
+    try {
+      await onSave({
+        title: form.title.trim(),
+        description: form.description.trim(),
+        priority: form.priority,
+        dueDate: form.dueDate || null,
+        dueTime: form.dueTime || null,
+        category: form.category,
+        reminderMinutes: form.dueDate ? form.reminderMinutes : null,
+        remindAt,
+      });
+    } catch (err) {
+      setSaving(false);
+      setSubmitError(
+        err instanceof Error ? err.message : 'Could not save the task. Please try again.'
+      );
+      return; // keep the modal open so the user doesn't lose their input
+    }
+    setSaving(false);
 
     // Prompt for push permission if a reminder was set
     if (remindAt && onNeedsNotification) {
@@ -233,17 +246,27 @@ export default function TaskForm({ task, onSave, onClose, onNeedsNotification }:
             </div>
           )}
 
+          {/* Submit error */}
+          {submitError && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800">
+              <svg className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p className="text-xs text-rose-700 dark:text-rose-400">{submitError}</p>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-1">
-            <button type="button" onClick={onClose}
-              className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+            <button type="button" onClick={onClose} disabled={saving}
+              className="px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
-            <button type="submit"
-              className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm font-semibold shadow-sm transition-all active:scale-95"
+            <button type="submit" disabled={saving}
+              className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-60 text-white text-sm font-semibold shadow-sm transition-all active:scale-95"
             >
-              {task ? 'Save Changes' : 'Create Task'}
+              {saving ? 'Saving…' : task ? 'Save Changes' : 'Create Task'}
             </button>
           </div>
         </form>
