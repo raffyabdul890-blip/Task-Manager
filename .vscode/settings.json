@@ -1,0 +1,6 @@
+{
+  "//": "Treat ONLY the Supabase edge functions as Deno; the rest of the repo stays Node/Next. Requires the 'Deno' VS Code extension (denoland.vscode-deno).",
+  "deno.enablePaths": ["./supabase/functions"],
+  "deno.lint": true,
+  "deno.unstable": false
+}

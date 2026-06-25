@@ -1,0 +1,4 @@
+{
+  "//": "Marks this folder as a Deno project so the Deno LSP resolves the https:// and npm: imports used by the edge functions.",
+  "lint": { "rules": { "tags": ["recommended"] } }
+}

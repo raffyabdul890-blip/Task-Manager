@@ -85,7 +85,7 @@ export default function HomePage() {
   const handleEnableNotifications = useCallback(async () => {
     setShowNotifBanner(false);
     const ok = await setupPush();
-    setPushStatus(ok ? 'granted' : Notification.permission);
+    setPushStatus(ok ? 'granted' : getPermission());
   }, []);
 
   if (loading) {

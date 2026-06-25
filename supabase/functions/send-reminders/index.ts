@@ -1,3 +1,9 @@
+// @ts-nocheck — This Edge Function runs on DENO (Supabase servers), not Node.
+// The editor's Node/Next TypeScript server can't resolve Deno's `https://` and
+// `npm:` imports or the `Deno` global, so it shows false "cannot find module /
+// name" errors. The file is valid Deno code and is deployed & live. (It's also
+// excluded from the app build via tsconfig "exclude": ["supabase"].)
+
 /**
  * Supabase Edge Function: send-reminders
  *

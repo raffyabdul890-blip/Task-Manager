@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase';
+import { getSiteUrl } from '@/lib/site-url';
 
 type Mode = 'login' | 'signup';
 
@@ -45,7 +46,7 @@ export default function AuthForm() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { emailRedirectTo: `${getSiteUrl()}/auth/callback` },
       });
       if (error) {
         setError(error.message);
